@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Practica Inglés - 5º Primaria (Modo Profe)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: #f0fdf4;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23dcfce7' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        .animate-bounce-short {
+            animation: bounce-short 0.5s infinite alternate;
+        }
+        @keyframes bounce-short {
+            from { transform: translateY(0); }
+            to { transform: translateY(-5px); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .explanation-box li {
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- Main Container -->
+    <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden border-4 border-green-400 fade-in relative">
+        
+        <!-- Header -->
+        <div class="bg-green-400 p-6 text-center relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-full opacity-20 bg-[url('https://www.transparenttextures.com/patterns/notebook.png')]"></div>
+            <h1 class="text-3xl font-bold text-white drop-shadow-md relative z-10">🇬🇧 English Master Class</h1>
+            <p class="text-green-50 font-semibold mt-2 relative z-10">Present Simple vs. Continuous</p>
+        </div>
+
+        <!-- Content Area -->
+        <div class="p-8" id="app-content">
+            <!-- Content injected via JS -->
+        </div>
+
+        <!-- Footer Progress -->
+        <div class="bg-gray-50 p-4 border-t border-gray-200 flex justify-between items-center text-sm font-bold text-gray-500" id="footer-bar">
+            <span>Progreso: <span id="progress-text">0/0</span></span>
+            <div class="w-1/2 bg-gray-200 rounded-full h-2.5 dark:bg-gray-200">
+                <div class="bg-green-500 h-2.5 rounded-full transition-all duration-500" id="progress-bar" style="width: 0%"></div>
+            </div>
+            <span>Puntos: <span id="score-text" class="text-green-600">0</span></span>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA: 100 Questions ---
+        // Se mantiene la misma base de datos de preguntas
+        const questions = [
+            // --- BLOQUE 1: BÁSICOS ---
+            { sentence: "Look! The cat ________ (sleep) on the sofa.", verb: "sleep", tense: "continuous", answer: "is sleeping", keyword: "Look!" },
+            { sentence: "I usually ________ (play) tennis on Saturdays.", verb: "play", tense: "simple", answer: "play", keyword: "usually" },
+            { sentence: "Listen! She ________ (sing) in the shower.", verb: "sing", tense: "continuous", answer: "is singing", keyword: "Listen!" },
+            { sentence: "We ________ (go) to school every day.", verb: "go", tense: "simple", answer: "go", keyword: "every day" },
+            { sentence: "Right now, Tom ________ (read) a comic book.", verb: "read", tense: "continuous", answer: "is reading", keyword: "Right now" },
+            { sentence: "My dad never ________ (cook) dinner.", verb: "cook", tense: "simple", answer: "cooks", keyword: "never" },
+            { sentence: "They ________ (watch) TV at the moment.", verb: "watch", tense: "continuous", answer: "are watching", keyword: "at the moment" },
+            { sentence: "She ________ (like) chocolate ice cream.", verb: "like", tense: "simple", answer: "likes", keyword: "General Truth" },
+            { sentence: "Look outside! It ________ (rain).", verb: "rain", tense: "continuous", answer: "is raining", keyword: "Look" },
+            { sentence: "Harry ________ (not / study) French on Mondays.", verb: "not study", tense: "simple", answer: ["doesn't study", "does not study"], keyword: "on Mondays" },
+            
+            // --- BLOQUE 2: VARIADOS ---
+            { sentence: "Please be quiet. The baby ________ (sleep).", verb: "sleep", tense: "continuous", answer: "is sleeping", keyword: "Be quiet" },
+            { sentence: "I ________ (not / wear) a jacket today. It's hot!", verb: "not wear", tense: "continuous", answer: ["am not wearing", "'m not wearing"], keyword: "today" },
+            { sentence: "Look! The bus ________ (come).", verb: "come", tense: "continuous", answer: "is coming", keyword: "Look" },
+            { sentence: "My sister usually ________ (study) in the kitchen.", verb: "study", tense: "simple", answer: "studies", keyword: "usually" },
+            { sentence: "We ________ (not / want) to go home.", verb: "not want", tense: "simple", answer: ["don't want", "do not want"], keyword: "Stative verb (want)" },
+            { sentence: "Listen! The birds ________ (sing).", verb: "sing", tense: "continuous", answer: "are singing", keyword: "Listen" },
+            { sentence: "Tom ________ (swim) in the pool right now.", verb: "swim", tense: "continuous", answer: "is swimming", keyword: "right now" },
+            { sentence: "I ________ (love) animals.", verb: "love", tense: "simple", answer: "love", keyword: "Stative verb (love)" },
+            { sentence: "My parents ________ (not / work) on Sundays.", verb: "not work", tense: "simple", answer: ["don't work", "do not work"], keyword: "on Sundays" },
+            { sentence: "Where is Mum? She ________ (cook) dinner.", verb: "cook", tense: "continuous", answer: "is cooking", keyword: "Context (Where is...?)" },
+
+            // --- BLOQUE 3: SPELLING RULES (S / ING) ---
+            { sentence: "He always ________ (try) very hard.", verb: "try", tense: "simple", answer: "tries", keyword: "always" },
+            { sentence: "Look! They ________ (run) very fast.", verb: "run", tense: "continuous", answer: "are running", keyword: "Look" },
+            { sentence: "She ________ (wash) her hair twice a week.", verb: "wash", tense: "simple", answer: "washes", keyword: "twice a week" },
+            { sentence: "We ________ (make) a cake at the moment.", verb: "make", tense: "continuous", answer: "are making", keyword: "at the moment" },
+            { sentence: "The baby ________ (cry) every night.", verb: "cry", tense: "simple", answer: "cries", keyword: "every night" },
+            { sentence: "Stop! You ________ (not / listen) to me.", verb: "not listen", tense: "continuous", answer: ["aren't listening", "are not listening"], keyword: "Stop!" },
+            { sentence: "He ________ (sit) on the floor right now.", verb: "sit", tense: "continuous", answer: "is sitting", keyword: "right now" },
+            { sentence: "Sarah ________ (have) lunch at 12:00 every day.", verb: "have", tense: "simple", answer: "has", keyword: "every day" },
+            { sentence: "They ________ (dance) in the living room now.", verb: "dance", tense: "continuous", answer: "are dancing", keyword: "now" },
+            { sentence: "My brother ________ (fix) cars.", verb: "fix", tense: "simple", answer: "fixes", keyword: "General truth" },
+
+            // --- BLOQUE 4: QUESTIONS & NEGATIVES ---
+            { sentence: "Where ________ (you / live)?", verb: "you / live", tense: "simple", answer: "do you live", keyword: "General fact" },
+            { sentence: "What ________ (she / do) right now?", verb: "she / do", tense: "continuous", answer: "is she doing", keyword: "right now" },
+            { sentence: "________ (they / play) football on Fridays?", verb: "they / play", tense: "simple", answer: "do they play", keyword: "on Fridays" },
+            { sentence: "Why ________ (he / cry)? Look at him.", verb: "he / cry", tense: "continuous", answer: "is he crying", keyword: "Look" },
+            { sentence: "She ________ (not / know) the answer.", verb: "not know", tense: "simple", answer: ["doesn't know", "does not know"], keyword: "Stative verb (know)" },
+            { sentence: "I ________ (not / read) a book at the moment.", verb: "not read", tense: "continuous", answer: ["am not reading", "'m not reading"], keyword: "at the moment" },
+            { sentence: "________ (you / understand) this exercise?", verb: "you / understand", tense: "simple", answer: "do you understand", keyword: "Stative verb" },
+            { sentence: "We ________ (not / go) to the park today.", verb: "not go", tense: "continuous", answer: ["aren't going", "are not going"], keyword: "today" },
+            { sentence: "What time ________ (the film / start)?", verb: "the film / start", tense: "simple", answer: "does the film start", keyword: "Timetable" },
+            { sentence: "Who ________ (you / wait) for?", verb: "you / wait", tense: "continuous", answer: "are you waiting", keyword: "Context" },
+
+            // --- BLOQUE 5: MIXED ---
+            { sentence: "My dog usually ________ (sleep) in my bed.", verb: "sleep", tense: "simple", answer: "sleeps", keyword: "usually" },
+            { sentence: "Look! The dog ________ (chase) the cat.", verb: "chase", tense: "continuous", answer: "is chasing", keyword: "Look" },
+            { sentence: "I ________ (think) you are right.", verb: "think", tense: "simple", answer: "think", keyword: "Stative verb" },
+            { sentence: "Be quiet! I ________ (think) about the answer.", verb: "think", tense: "continuous", answer: "am thinking", keyword: "Be quiet" },
+            { sentence: "She ________ (have) a shower at the moment.", verb: "have", tense: "continuous", answer: "is having", keyword: "at the moment" },
+            { sentence: "We ________ (have) a big house.", verb: "have", tense: "simple", answer: "have", keyword: "Stative verb" },
+            { sentence: "My teacher ________ (write) on the board now.", verb: "write", tense: "continuous", answer: "is writing", keyword: "now" },
+            { sentence: "Writers ________ (write) books.", verb: "write", tense: "simple", answer: "write", keyword: "General truth" },
+            { sentence: "The sun ________ (rise) in the east.", verb: "rise", tense: "simple", answer: "rises", keyword: "General truth" },
+            { sentence: "Look! The sun ________ (rise)!", verb: "rise", tense: "continuous", answer: "is rising", keyword: "Look" },
+            
+             // --- BLOQUE 6: RELLENO HASTA 100 ---
+            { sentence: "They ________ (travel) to London today.", verb: "travel", tense: "continuous", answer: "are traveling", keyword: "today" },
+            { sentence: "We often ________ (visit) our grandparents.", verb: "visit", tense: "simple", answer: "visit", keyword: "often" },
+            { sentence: "She ________ (not / like) spiders.", verb: "not like", tense: "simple", answer: ["doesn't like", "does not like"], keyword: "Stative verb" },
+            { sentence: "I ________ (drink) water right now.", verb: "drink", tense: "continuous", answer: "am drinking", keyword: "right now" },
+            { sentence: "Cats ________ (drink) milk.", verb: "drink", tense: "simple", answer: "drink", keyword: "General truth" },
+            { sentence: "Listen! Someone ________ (knock) at the door.", verb: "knock", tense: "continuous", answer: "is knocking", keyword: "Listen" },
+            { sentence: "He ________ (brush) his teeth twice a day.", verb: "brush", tense: "simple", answer: "brushes", keyword: "twice a day" },
+            { sentence: "I ________ (do) my homework now.", verb: "do", tense: "continuous", answer: ["am doing", "'m doing"], keyword: "now" },
+            { sentence: "She ________ (do) karate on Tuesdays.", verb: "do", tense: "simple", answer: "does", keyword: "on Tuesdays" },
+            { sentence: "Look! That man ________ (wear) a funny hat.", verb: "wear", tense: "continuous", answer: "is wearing", keyword: "Look" },
+            { sentence: "People ________ (wear) coats in winter.", verb: "wear", tense: "simple", answer: "wear", keyword: "in winter" },
+            { sentence: "________ (it / snow) outside?", verb: "it / snow", tense: "continuous", answer: "is it snowing", keyword: "outside" },
+            { sentence: "It ________ (not / snow) in summer.", verb: "not snow", tense: "simple", answer: ["doesn't snow", "does not snow"], keyword: "General truth" },
+            { sentence: "We ________ (enjoy) the party!", verb: "enjoy", tense: "continuous", answer: "are enjoying", keyword: "Context" },
+            { sentence: "I always ________ (enjoy) reading.", verb: "enjoy", tense: "simple", answer: "enjoy", keyword: "always" },
+            { sentence: "The phone ________ (ring)!", verb: "ring", tense: "continuous", answer: "is ringing", keyword: "Context" },
+            { sentence: "Birds ________ (fly) south in winter.", verb: "fly", tense: "simple", answer: "fly", keyword: "in winter" },
+            { sentence: "Look! The bird ________ (fly) away.", verb: "fly", tense: "continuous", answer: "is flying", keyword: "Look" },
+            { sentence: "I ________ (study) hard this week.", verb: "study", tense: "continuous", answer: ["am studying", "'m studying"], keyword: "this week" },
+            { sentence: "She ________ (teach) math.", verb: "teach", tense: "simple", answer: "teaches", keyword: "Profession" },
+            { sentence: "Mr. Smith ________ (teach) us English right now.", verb: "teach", tense: "continuous", answer: "is teaching", keyword: "right now" },
+            { sentence: "They ________ (build) a new school.", verb: "build", tense: "continuous", answer: "are building", keyword: "Context" },
+            { sentence: "He ________ (buy) a newspaper every morning.", verb: "buy", tense: "simple", answer: "buys", keyword: "every morning" },
+            { sentence: "We ________ (not / watch) a movie.", verb: "not watch", tense: "continuous", answer: ["aren't watching", "are not watching"], keyword: "Context" },
+            { sentence: "________ (you / need) help?", verb: "you / need", tense: "simple", answer: "do you need", keyword: "Stative verb" },
+            { sentence: "The water ________ (boil). Can you turn it off?", verb: "boil", tense: "continuous", answer: "is boiling", keyword: "Context" },
+            { sentence: "Water ________ (boil) at 100 degrees.", verb: "boil", tense: "simple", answer: "boils", keyword: "General truth" },
+            { sentence: "I ________ (remember) your name.", verb: "remember", tense: "simple", answer: "remember", keyword: "Stative verb" },
+            { sentence: "She ________ (forget) her keys always.", verb: "forget", tense: "simple", answer: "forgets", keyword: "always" },
+            { sentence: "They ________ (plan) a trip.", verb: "plan", tense: "continuous", answer: "are planning", keyword: "Context" },
+            { sentence: "He ________ (stop) the car now.", verb: "stop", tense: "continuous", answer: "is stopping", keyword: "now" },
+            { sentence: "The bus ________ (stop) here every hour.", verb: "stop", tense: "simple", answer: "stops", keyword: "every hour" },
+            { sentence: "I ________ (see) a bird in the tree.", verb: "see", tense: "simple", answer: "see", keyword: "Stative-like" },
+            { sentence: "I ________ (see) the doctor tomorrow.", verb: "see", tense: "continuous", answer: ["am seeing", "'m seeing"], keyword: "tomorrow" },
+            { sentence: "You ________ (drive) too fast!", verb: "drive", tense: "continuous", answer: "are driving", keyword: "Context" },
+            { sentence: "He usually ________ (drive) to work.", verb: "drive", tense: "simple", answer: "drives", keyword: "usually" },
+            { sentence: "We ________ (start) the game now.", verb: "start", tense: "continuous", answer: "are starting", keyword: "now" },
+            { sentence: "School ________ (start) in September.", verb: "start", tense: "simple", answer: "starts", keyword: "in September" },
+            { sentence: "Why ________ (you / laugh)?", verb: "you / laugh", tense: "continuous", answer: "are you laughing", keyword: "Context" },
+            { sentence: "She ________ (wash) the dishes now.", verb: "wash", tense: "continuous", answer: "is washing", keyword: "now" },
+            { sentence: "I ________ (hate) waking up early.", verb: "hate", tense: "simple", answer: "hate", keyword: "Stative verb" },
+            { sentence: "They ________ (cut) the grass.", verb: "cut", tense: "continuous", answer: "are cutting", keyword: "Context" },
+            { sentence: "He ________ (prefer) tea to coffee.", verb: "prefer", tense: "simple", answer: "prefers", keyword: "Stative verb" },
+            { sentence: "________ (she / believe) in ghosts?", verb: "she / believe", tense: "simple", answer: "does she believe", keyword: "Stative verb" },
+            { sentence: "I ________ (stay) at a hotel this week.", verb: "stay", tense: "continuous", answer: ["am staying", "'m staying"], keyword: "this week" },
+            { sentence: "We ________ (stay) home on Sundays.", verb: "stay", tense: "simple", answer: "stay", keyword: "on Sundays" },
+            { sentence: "Look! It ________ (snow) again.", verb: "snow", tense: "continuous", answer: "is snowing", keyword: "Look" },
+            { sentence: "My brother ________ (not / tidy) his room often.", verb: "not tidy", tense: "simple", answer: ["doesn't tidy", "does not tidy"], keyword: "often" },
+            { sentence: "They ________ (talk) on the phone.", verb: "talk", tense: "continuous", answer: "are talking", keyword: "Context" },
+            { sentence: "He ________ (talk) a lot.", verb: "talk", tense: "simple", answer: "talks", keyword: "General truth" }
+        ];
+
+        // --- STATE ---
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let shuffledQuestions = [];
+
+        // --- DOM ELEMENTS ---
+        const appContent = document.getElementById('app-content');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        const scoreText = document.getElementById('score-text');
+        const footerBar = document.getElementById('footer-bar');
+
+        // --- SOUNDS (Optional simulation via UI) ---
+        function playSuccess() { confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); }
+
+        // --- EXPLANATION GENERATOR (THE TEACHER LOGIC) ---
+        function getExplanationHTML(q, correctDisplay) {
+            let reason = "";
+            let grammarRule = "";
+            let spellingNote = "";
+
+            // 1. ANALIZAR EL TIEMPO (TENSE)
+            if (q.tense === "simple") {
+                if (q.keyword.includes("Stative")) {
+                    reason = `El verbo <b>"${q.verb}"</b> es de sentimiento o mental (Stative Verb).`;
+                    grammarRule = "Estos verbos NO suelen llevar -ing. Se usan en Present Simple.";
+                } else {
+                    reason = `La pista es <b>"${q.keyword}"</b>, que indica una rutina, un hábito o una verdad general.`;
+                    grammarRule = "Para rutinas usamos <b>Present Simple</b>. (Sujeto + Verbo).";
+                }
+                
+                // Reglas de la 'S'
+                if (correctDisplay.endsWith("ies")) {
+                    spellingNote = "Como termina en consonante + 'y', cambiamos la 'y' por <b>'ies'</b>.";
+                } else if (correctDisplay.endsWith("es") && !correctDisplay.includes("does")) {
+                    spellingNote = "Como el verbo termina en sonido sibilante (o 'o'), añadimos <b>'es'</b>.";
+                } else if (correctDisplay.endsWith("s") && !correctDisplay.includes("does")) {
+                    spellingNote = "¡Ojo! Es 3ª persona (He/She/It), así que añadimos una <b>'s'</b> al verbo.";
+                } else if (correctDisplay.includes("does")) {
+                     spellingNote = "Para preguntar o negar en 3ª persona usamos el auxiliar <b>Does/Doesn't</b>.";
+                }
+
+            } else { // Continuous
+                reason = `La pista es <b>"${q.keyword}"</b>, que indica que está pasando <b>ahora mismo</b> o es temporal.`;
+                grammarRule = "Para acciones del momento usamos <b>Present Continuous</b> (To Be + Verbo-ing).";
+                
+                // Reglas del ING
+                const baseVerb = q.verb.replace("not ", "").replace(" / ", "").split(" ")[0]; // clean verb
+                if (correctDisplay.includes(baseVerb + baseVerb.slice(-1) + "ing")) { 
+                     // Detección simple de doblar consonante (run -> running)
+                     // Nota: esto es una aproximación visual para la UI
+                     spellingNote = `¡Cuidado! El verbo '${baseVerb}' dobla su última letra: <b>${baseVerb.slice(-1)}${baseVerb.slice(-1)}ing</b>.`;
+                } else if (baseVerb.endsWith("e") && !correctDisplay.includes("eing")) {
+                    spellingNote = `El verbo '${baseVerb}' termina en 'e'. Quitamos la 'e' y ponemos <b>-ing</b>.`;
+                }
+            }
+
+            return `
+                <div class="bg-red-50 p-5 rounded-xl border-l-8 border-red-400 text-left shadow-sm">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-2xl">👩‍🏫</span>
+                        <h4 class="font-bold text-red-800 text-lg">Vamos a aprender del error:</h4>
+                    </div>
+                    
+                    <ul class="list-none space-y-2 text-gray-700 text-sm md:text-base explanation-box">
+                        <li class="flex gap-2">
+                            <span class="text-xl">🔍</span>
+                            <span><b>La Pista:</b> ${reason}</span>
+                        </li>
+                        <li class="flex gap-2">
+                            <span class="text-xl">📚</span>
+                            <span><b>La Regla:</b> ${grammarRule}</span>
+                        </li>
+                        ${spellingNote ? `
+                        <li class="flex gap-2 bg-white p-2 rounded border border-red-100">
+                            <span class="text-xl">✍️</span>
+                            <span><b>Ortografía:</b> ${spellingNote}</span>
+                        </li>` : ''}
+                    </ul>
+                    
+                    <div class="mt-4 pt-3 border-t border-red-200">
+                        <p class="text-gray-600 text-xs uppercase tracking-wide font-bold mb-1">Respuesta Correcta:</p>
+                        <p class="text-xl text-red-600 font-bold font-mono bg-white inline-block px-3 py-1 rounded border border-red-200 shadow-sm">${correctDisplay}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+
+        // --- SCREENS ---
+
+        function renderStartScreen() {
+            footerBar.style.display = 'none';
+            appContent.innerHTML = `
+                <div class="text-center space-y-6">
+                    <div class="bg-blue-100 p-6 rounded-2xl border-2 border-blue-200 text-left">
+                        <h3 class="font-bold text-xl text-blue-600 mb-2">📚 Super Reto 100:</h3>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <strong class="text-orange-500">Present Simple</strong>
+                                <p class="text-sm text-gray-700">Rutinas y estados.</p>
+                                <p class="text-xs text-gray-500 mt-1">Keywords: Usually, Always, Never.</p>
+                                <p class="text-xs font-mono bg-white p-1 rounded mt-1 border">She <b>plays</b> / Does she play?</p>
+                            </div>
+                            <div>
+                                <strong class="text-purple-500">Present Continuous</strong>
+                                <p class="text-sm text-gray-700">Ahora mismo y temporal.</p>
+                                <p class="text-xs text-gray-500 mt-1">Keywords: Now, Look!, This week.</p>
+                                <p class="text-xs font-mono bg-white p-1 rounded mt-1 border">She <b>is playing</b> / Is she playing?</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <p class="text-lg text-gray-600">¡Hay <b>100 preguntas</b>! ¿Cuántas podrás acertar?</p>
+                    
+                    <button onclick="startGame()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-10 rounded-full text-xl shadow-lg transform transition hover:scale-105 animate-bounce-short">
+                        ¡Empezar Reto! 🚀
+                    </button>
+                </div>
+            `;
+        }
+
+        function renderEndScreen() {
+            footerBar.style.display = 'none';
+            let message = "";
+            let color = "";
+            
+            const percentage = (score / questions.length) * 100;
+
+            if (percentage >= 90) {
+                message = "¡INCREÍBLE! 🏆 ¡Eres una experta total!";
+                color = "text-yellow-500";
+                setTimeout(playSuccess, 500);
+            } else if (percentage >= 70) {
+                message = "¡Muy bien hecho! 🎉";
+                color = "text-green-500";
+            } else {
+                message = "¡Buen intento! Sigue practicando 💪";
+                color = "text-blue-500";
+            }
+
+            appContent.innerHTML = `
+                <div class="text-center space-y-6 fade-in">
+                    <h2 class="text-4xl font-bold ${color}">${message}</h2>
+                    <p class="text-2xl text-gray-700">Tu puntuación: <b>${score}</b> de ${questions.length}</p>
+                    
+                    <div class="flex justify-center">
+                        <div class="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center text-4xl border-4 border-green-200">
+                           ${percentage >= 90 ? '🌟' : percentage >= 70 ? '😊' : '📚'}
+                        </div>
+                    </div>
+
+                    <button onclick="startGame()" class="mt-8 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-xl shadow-md transition">
+                        Volver a intentar 🔄
+                    </button>
+                </div>
+            `;
+        }
+
+        function renderQuestion() {
+            footerBar.style.display = 'flex';
+            const q = shuffledQuestions[currentQuestionIndex];
+            
+            // Split sentence for the input field
+            const parts = q.sentence.split('________');
+            
+            appContent.innerHTML = `
+                <div class="fade-in space-y-8">
+                    <div class="bg-yellow-50 p-6 rounded-2xl border-2 border-yellow-200 shadow-sm relative">
+                        <span class="absolute top-2 right-4 text-xs font-bold text-yellow-600 opacity-50">Pregunta ${currentQuestionIndex + 1}</span>
+                        <p class="text-2xl text-gray-800 leading-loose text-center font-medium">
+                            ${parts[0]}
+                            <span class="inline-block relative">
+                                <input type="text" id="user-input" autocomplete="off" 
+                                    class="w-48 bg-white border-b-4 border-gray-300 focus:border-blue-500 outline-none text-center text-blue-600 font-bold px-2 py-1 rounded transition-colors placeholder-gray-300" 
+                                    placeholder="${q.verb}" onkeydown="handleEnter(event)">
+                            </span>
+                            ${parts[1] || ''}
+                        </p>
+                    </div>
+
+                    <div id="feedback-area" class="hidden min-h-[80px]"></div>
+
+                    <div class="flex justify-center pt-4">
+                        <button id="check-btn" onclick="checkAnswer()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-12 rounded-full text-lg shadow-lg transform transition hover:scale-105">
+                            Comprobar ✨
+                        </button>
+                        <button id="next-btn" onclick="nextQuestion()" class="hidden bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-12 rounded-full text-lg shadow-lg transform transition hover:scale-105">
+                            Siguiente ➡️
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            // Focus input immediately
+            setTimeout(() => document.getElementById('user-input').focus(), 100);
+            updateUI();
+        }
+
+        // --- LOGIC ---
+
+        function startGame() {
+            score = 0;
+            currentQuestionIndex = 0;
+            // Shuffle questions nicely
+            shuffledQuestions = [...questions].sort(() => Math.random() - 0.5);
+            updateUI();
+            renderQuestion();
+        }
+
+        function updateUI() {
+            const progress = ((currentQuestionIndex) / questions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+            progressText.innerText = `${currentQuestionIndex + 1}/${questions.length}`;
+            scoreText.innerText = score;
+        }
+
+        function handleEnter(e) {
+            if (e.key === 'Enter') {
+                if (document.getElementById('check-btn').classList.contains('hidden')) {
+                    nextQuestion();
+                } else {
+                    checkAnswer();
+                }
+            }
+        }
+
+        function checkAnswer() {
+            const inputEl = document.getElementById('user-input');
+            const feedbackEl = document.getElementById('feedback-area');
+            const checkBtn = document.getElementById('check-btn');
+            const nextBtn = document.getElementById('next-btn');
+            
+            let userAns = inputEl.value.trim().toLowerCase();
+            userAns = userAns.replace(/\s+/g, ' ');
+
+            const currentQ = shuffledQuestions[currentQuestionIndex];
+            
+            let isCorrect = false;
+            if (Array.isArray(currentQ.answer)) {
+                isCorrect = currentQ.answer.includes(userAns);
+            } else {
+                isCorrect = userAns === currentQ.answer;
+            }
+
+            inputEl.disabled = true;
+            feedbackEl.classList.remove('hidden');
+            feedbackEl.classList.add('fade-in');
+
+            // Format correct answer for display
+            let correctDisplay = Array.isArray(currentQ.answer) ? currentQ.answer[0] : currentQ.answer;
+
+            if (isCorrect) {
+                score++;
+                if (Math.random() > 0.7) playSuccess();
+                inputEl.classList.add('bg-green-100', 'border-green-500', 'text-green-700');
+                feedbackEl.innerHTML = `
+                    <div class="bg-green-100 p-4 rounded-xl border border-green-300 flex items-center gap-3 shadow-sm">
+                        <div class="text-4xl">🌟</div>
+                        <div>
+                            <p class="font-bold text-green-800 text-lg">¡Perfecto!</p>
+                            <p class="text-sm text-green-700">Has usado bien la pista: <b>"${currentQ.keyword}"</b></p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                inputEl.classList.add('bg-red-100', 'border-red-500', 'text-red-700');
+                // GENERATE DETAILED EXPLANATION
+                feedbackEl.innerHTML = getExplanationHTML(currentQ, correctDisplay);
+            }
+
+            scoreText.innerText = score;
+            checkBtn.classList.add('hidden');
+            nextBtn.classList.remove('hidden');
+            nextBtn.focus();
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                renderQuestion();
+            } else {
+                renderEndScreen();
+            }
+        }
+
+        // Initialize
+        renderStartScreen();
+
+    </script>
+</body>
+</html>
